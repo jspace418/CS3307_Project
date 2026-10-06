@@ -1,0 +1,323 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{amsfonts, amsthm, amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{graphicx}
+\graphicspath{{./img/}}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+\title{
+    CS 3307 Project Proposal \\ 
+    \large Single Player Rhythm Game Engine
+}
+
+\author{
+    Group Number: 75 \\
+    \\
+    Seongmin Park \\
+    spark776@uwo.ca \\
+    251305418
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+\section{Problem Statement}
+\tab Rhythm games are a genre of the game where players need to respond to musical patterns by performing inputs at the correct time. 
+Although the basic interaction (pressing a key when a note reaches a target)  is simple, the game must coordinate timing, note patterns, scoring, combo tracking, difficulty, progression, and persistent player data.
+Small errors in these systems can produce inconsistent gameplay, such as notes being judged differently depending on timing, scores being calculated incorrectly, or player progress being lost.
+The proposed system is a desktop rhythm game that provides a structured environment for playing songs, receiving timing-based judgements, and tracking progression. \\
+\tab The primary users are players, who select songs and difficulties, play through the charts, and view their results.
+A player should be able to understand how well they performed through information such as score, accuracy, judgement counts, and combo. \\
+\tab A secondary stakeholder is the developer, who needs the game to have well-structured domain model so that scoring rules, difficulty configurations, and other gameplay variations can be added without substaintially modifying the existing components. 
+The project also needs to be maintainable and testable so that changes to one part of the system do not unexpectedly break other parts. \\
+\tab The main difficulty is that a rhythm game involves several components that must cooperate while remaining independent. For instance, gameplay depends on precise timing, but timing should not be tied directly to user interface or a particular timing implementation.
+Similarly, judging a note, calculating a score, maintaining a combo, and determining progression are different responsibilities that should not be concentrated in one large game class.
+
+\pagebreak
+
+\section{Requirements}
+\tab The initial requirements were gathered from three sources.
+First, the project's required Design Depth Profile and technical requirements were used to identify the architectural and domain capabilities that the system must support. \\
+\tab Second, multiple rhythm games that are already exist were examined to identify common gameplay concepts such as song selection, note charts, timing judgements, combos, scoring, and results.
+Examples considered include well-known rhythm games such as osu!mania and DJMAX RESPECT V. \\
+\tab Finally, the proposed gameplay was considered from the perspective of a typical player to identify the actions that the user must be able to perform.
+    
+    \subsection{Function Requirements}
+        \subsubsection{FR1}
+            Display a list of available songs and select a song to play. Must have.
+
+        \subsubsection{FR2}
+            Select an available difficulty for a selected song. Must have.
+
+        \subsubsection{FR3}
+            Load the selected song's chart and present its notes to the player during gameplay. Must have.
+
+        \subsubsection{FR4}
+            Accept player input for a note and determine a timing judgement based on difference between the player's input time and the note's scheduled (intended) time. Must have.
+
+        \subsubsection{FR5}
+            Support 2 types of notes: tap, and hold notes. Each type must apply its appropriate gameplay behaviour when played. Must have.
+
+        \subsubsection{FR6}
+            Calculate and display the player's score, combo, and accuracy during or after a song based on player's note judgements. Must have.
+
+        \subsubsection{FR7}
+            Allow player to pause, resume, and complete an active game session, while rejecting invalid game states. Must have.
+
+        \subsubsection{FR8}
+            Save player's progression and song results and restore them everytime the application is opened. Must have.
+        
+        \subsubsection{FR9}
+            Different game modes using different controls. Such as keyboard-based modes, and game mode that you control only with the mouse. Could have.
+        
+        \subsubsection{FR10}
+            Unlock songs or difficulties when the player's progression satisfies the unlock conditions such as, but not limited to, achieve certain threshold of accuracy, or play a song certain times. 
+            Note that this will require to modify FR2 to add functionality that prevent player to choose locked songs/difficulties depending on their progression. Should have.
+
+        \subsubsection{FR11}
+            The system shall display an appropriate error message and preserve the existing valid state when a save file is missing or corrupted. Must have.
+
+\pagebreak
+
+    \subsection{Non-functional Requirements}
+        \subsubsection{NFR1 - Performance}
+            The system shall process a valid gameplay input and produce its corresponding domain judgement
+            without noticeable delay during normal gameplay.
+            Under normal single player gameplay conditions, the domain operation for processing a note input should complete within
+            50 ms.
+
+        \subsubsection{NFR2 - Reliability}
+            The system shall not terminate/crash unexpectedly as a result of invalid player input, illegal game state transitions, or a corrupt save file.
+            These conditions shall produce a defined error messages instead.
+        
+        \subsubsection{NFR3 - Maintainability}
+            The domain logic shall remain independent of Qt user interface classes.
+            Domain classes shall be compilable and testable without the user interface part of the application.
+        
+        \subsubsection{NFR4 - Usability}
+            A player shall be able to start a song from the selection screen using the available controls without needing to configure files or
+            interact with the application's underlying data files.
+
+
+\pagebreak
+
+
+\section{Use Case Model}
+        \subsection{Use Cases}
+            \subsubsection{UC1 - Select Song}
+                The player views the available songs and selects
+                a song to play.    
+
+            \subsubsection{UC2 - Select Difficulty}
+                The player selects an available difficulty for the chosen song.
+
+            \subsubsection{UC3 - Select Game Mode}
+                The player selects a supported game mode and its associated input controls.
+
+            \subsubsection{UC4 - Play Song}
+                The plyaer provides inputs while notes appear, and the system judges the inputs and updates the player's performance.
+
+            \subsubsection{UC5 - Pause/Resume Game}
+                The player pauses or resumes an active game session.
+
+            \subsubsection{UC6 - Complete Song}
+                The system detects the end of a song, calculates the final performance, and records the song result.
+
+            \subsubsection{UC7 - View Result}
+                The player views their final score, combo, accuracy, and note judgements after completing a song.
+
+            \subsubsection{UC8 - Save Progress}
+                The system saves the player's progression and song results to persistent storage.
+
+            \subsubsection{UC9 - Load Progress}
+                The system restores the player's saved progression and results when the application starts.
+
+            \subsubsection{UC10 - Unlock Content}
+                The system evaluates the player's progression and unlocks songs or difficulties when their unlock conditions are satisfied.
+
+            \subsubsection{UC11 - Handle Invalid Save}
+                The system detects a missing or corrupted save file, informs the player, and preserves or creates a valid profile state.
+
+        \subsection{Traceability Table}
+        \begin{table}[H]
+            \centering
+            \begin{tabular}{@{}ll@{}}
+                \toprule
+                Functional Requirements & Realized Use Case(s) \\ 
+                \midrule
+                FR1 & UC1 \\
+                FR2 & UC2, UC10 \\
+                FR3 & UC1, UC4 \\
+                FR4 & UC4 \\
+                FR5 & UC4 \\
+                FR6 & UC4, UC6, UC7 \\
+                FR7 & UC4, UC5, UC6 \\
+                FR8 & UC8, UC9 \\
+                FR9 & UC3, UC4 \\
+                FR10 & UC2, UC10 \\
+                FR11 & UC9, UC11 \\
+                \bottomrule
+            \end{tabular}
+        \end{table}
+
+\pagebreak
+
+        \subsection{UML Use Case Diagram}
+            \begin{figure}[H]
+                \centering
+                \includegraphics[width=\textwidth]{UseCase.png}
+                \caption{Use Case Diagram}
+            \end{figure}
+            
+
+\pagebreak
+
+        \subsection{Written Use Case - UC4}
+            \subsubsection{Primary Actor}
+                Player
+            
+            \subsubsection{Goal}
+                Play a selected song and receive timing judgements and performance feedback based on their inputs.
+            
+            \subsubsection{Preconditions}
+                \begin{enumerate}
+                    \item The application is running.
+                    \item The player has selected a valid song.
+                    \item The player has selected an available difficulty.
+                    \item The selected chart can be loaded successfully.
+                    \item A valid game mode has been selected.
+                    \item A `GameSession' can be created in the initial state.
+                \end{enumerate}
+            
+
+            \subsubsection{Main Success Scenario}
+                \begin{enumerate}
+                    \item The player selects Play from the song selection screen.
+                    \item The system loads the selected chart.
+                    \item The system creates a new game session using selected song, difficulty, and game mode.
+                    \item The game session trasitions from `Loading' to `Playing'.
+                    \item The system begins presenting notes according to their scheduled times.
+                    \item The player provides an input corresponding to an upcoming note.
+                    \item The system obtains the input timestamp.
+                    \item The system identifies the relevant note.
+                    \item The system calculates the difference between the plyer's input time and the note's scheduled time.
+                    \item The system determines a timing judgement, such as `Perfect', `Great', `Good', or `Miss'.
+                    \item The system applies the apporpriate behaviour for the note type. For example, a tap note is resolved by a single input, while a hold note requires the player to maintain the input for its required duration.
+                    \item The system updates the player's score, combo, and accuracy.
+                    \item THe updated performatnce information is displayed to the player.
+                    \item Steps 6-13 repeat as the remaining notes are played.
+                    \item When the chart is complete, the system transitions the game session to `Finished'.
+                    \item The system creates a song result containing the player's score, accuracy, combo, and judgement information.
+                    \item The result is displayed to the player.
+                    \item The player's progression and result are saved.
+                \end{enumerate}
+            
+
+            \subsubsection{Alternative Flows}
+                \begin{itemize}
+                    \item A1: Player pauses the game.
+                    \begin{enumerate}
+                        \item While the session is `Playing', the player selectes pause.
+                        \item The system transitions the session to `Paused'.
+                        \item Note progression and gameplay input processing stop.
+                        \item The player selects resume.
+                        \item The system transitions the session back to `Playing'.
+                        \item Gameplay continues from the paused state.
+                    \end{enumerate}
+                    \item A2: Player completes a hold note.
+                    \begin{enumerate}
+                        \item The player begins the hold input withint the valid timing window.
+                        \item The system records the start of the hold.
+                        \item The player maintains the input for the required duration.
+                        \item The system validates the hold duration.
+                        \item The hold note is successfully resolve and the appropriate score is awareded.
+                    \end{enumerate}
+                    \item A3: Player makes a late or early input.
+                    \begin{enumerate}
+                        \item The player's input occurs outside the `Perfect' timing window.
+                        \item The system calculates the timing difference.
+                        \item The appropriate lower judgement is assigned.
+                        \item The score, combo, and accuracy are updated according to the judgement.
+                    \end{enumerate}
+                \end{itemize}
+            
+            \subsubsection{Exception Flows}
+                \begin{itemize}
+                    \item E1: Invalid player input
+                    \begin{enumerate}
+                        \item The player provides an input that does not correspond to a valid control or lane.
+                        \item The system rejects the input.
+                        \item The system displays an appropriate feedback message where applicable.
+                        \item The current game state, score, and valid notes remain unchanged.
+                    \end{enumerate}
+                    \item E2: Illegal game state transition
+                    \begin{enumerate}
+                        \item An attempt is made to perform an operation that is invalid for the current state, such as resuming a session that is already `Playing'.
+                        \item The system rejectes the transition.
+                        \item The session remains in its current valid state.
+                        \item The system reports the error appropriately.
+                    \end{enumerate}
+                    \item E3: Chart cannot be loaded
+                    \begin{enumerate}
+                        \item The selected chart cannot be loaded or is invalid.
+                        \item The system does not start the game session.
+                        \item The player is informed that the song cnnat currently be played.
+                        \item The player remains on the song selection screen.
+                    \end{enumerate}
+                \end{itemize}
+            
+            \subsubsection{Postconditions}
+                \begin{itemize}
+                    \item Successful Completion
+                    \begin{enumerate}
+                        \item The game session is in the `Finished' state.
+                        \item Every required note has been resolved.
+                        \item A song result containing the player's performance has been created.
+                        \item Score, combo, accuracy, and judgement information have been calculated.
+                        \item The result is displayed to the player.
+                        \item The player's progression is updated.
+                        \item The updated progression is saved.
+                    \end{enumerate}
+                    \item Unsuccessful Completion
+                    \begin{enumerate}
+                        \item The game session remains in a valid state or is not created.
+                        \item No invalid score or progression data is stored.
+                        \item The player receives appropriate feedback about the failure.
+                    \end{enumerate}
+                \end{itemize}
+
+
+
+\section{Initial Class Diagram}
+    \begin{figure}[H]
+        \includegraphics[width=\textwidth]{ClassDiagram.png}
+        \centering
+        \caption{Initial Class Diagram}
+    \end{figure}
+    See github
+
+
+\section{Sequence Diagram}
+
+
+\section{Architecture Overview}
+
+
+\section{Object-Oriented Design Approach \& Candidate Patterns}
+
+
+\section{Milestone Plans \& Risks}
+
+
+\section{Design Depth Profile}
+
+
+\end{document}
