@@ -327,7 +327,28 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
 \pagebreak
 
 \section{Architecture Overview}
+    \tab The system will use a modular, layered architecture consisting of three core domain modules: Song and Chart, Gameplay, and Progression.
+    The system will also contain Qt-based presentation layer in \texttt{ui/} and an external service boundary within \texttt{core/} for persistence and time-related dependencies.\\
+    \tab The Song and Chart module is responsible for representing the available songs, difficulty-based charts, and individual notes. A Song contains one or more Chart objects, while Chart contains Note objects.
+    Note is an abstract class with TapNote and HoldNote implementations. This module contains the data and behaviour required to describe what the player must perform, but does not handle user interface concerns or the overall game session. \\
+    \tab The Gameplay module controls an active game session. GameSession coordinates the current song, chart, score, combo, note judgement, scoring policy, and game state transitions.
+    NoteJudge determines the result of player input using NoteJudgement abstraction, while ScoringPolicy determines the points awareded for a judgement.
+    The GameState and its states enforce valid game session transitions. The Gameplay module depends on the Song and Chart module because it processes the notes contained in a selected chart. \\
+    \tab The Progression module manages information that persists between gameplay sessions.
+    Profile stores the player's results and unlocked content, SongResult represents the outcome of a completed song, and Progression evaluates results to determine whether songs or difficulties should be unlocked.
+    The Progression module therefore receives results from Gameplay and maintains the player's progression. \\
+    \tab The UI layer is located in \texttt{ui/} and forms a strict boundary around the core domain.
+    It will contain the Qt 6 views and controllers used to display menus, song selection, gameplay, and results.
+    UI classes may depend on classes and interfaces in \texttt{core/}, but the reverse dependency is prohibited.
+    For example, the UI may translate a keyboard event into a PlayerInput and pass it to GameSession, but GameSession will not depend on Qt classes.
+    This keeps the domain independently compilable and testable. \\
+    \tab The external boundary is handled through two interfaces in \texttt{core/}: SaveStore and Clock.
+    SaveStore abstracts persistence so that the domain does not depend directly on a particular file format.
+    Its real implementation will be JsonSaveStore, which saves and loads the player's Profile from a file.
+    Similarly, Clock abstracts access to the current time. SystemClock will provide the real implementation during gameplay.
+    Consequently, the core domain depends on these abstractions rather than directly on external services.
 
+\pagebreak
 
 \section{Object-Oriented Design Approach \& Candidate Patterns}
 
