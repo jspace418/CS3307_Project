@@ -175,6 +175,7 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
                 FR11 & UC9, UC11 \\
                 \bottomrule
             \end{tabular}
+            \caption{Traceability Table}
         \end{table}
 
 \pagebreak
@@ -350,7 +351,33 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
 
 \pagebreak
 
-\section{Object-Oriented Design Approach \& Candidate Patterns}
+\section{Design Approach \& Candidate Patterns}
+    \tab Encapsulation will be used to keep domain state private and expose only operations that maintain valid state.
+    For example, Score will control changes to its score value through operations such as \texttt{add()}, while GameSession will control valid transitions between its game states rather than allowing other classes to directly modify its state. \\
+    \tab Inheritance will be used where there is genuine is-a relationship and shared behaviour.
+    TapNote and HoldNote will inherit from the abstract Note class because both represent playable notes but have different resolution behaviour. \\
+    \tab Polymorphism will allow GameSession and other domain classes to work with abstractions rather than concrete implementations.
+    For example, NoteJudge uses the NoteJudgement interface, allowing a NormalJudgement implementation to be replaced by another judgement policy without modifying NoteJudge.
+    GameSession similarly uses the ScoringPolicy interface rather than depending directly on Scoring.
+    This supports adding alternative gameplay rules without modifying existing classes. \\
+    \tab Abstraction will be important at variation points and external boundaries.
+    NoteJudgement, ScoringPolicy, GameState, Clock, and SaveStore expose only the operations that clients need while hiding their implementation details.
+    The Clock and SaveStore abstractions also ensure that the core domain does not depend directly on the system. \\
+    \tab Where possible, the design will favour composition over inheritance.
+    For example, GameSession contains Score, Combo, and NoteJudge rather than inheriting from these classes.
+    Composition allows each responsibility to change independently and avoids creating a deep inheritance hierarchy.
+    Inheritance is only reserved for cases such as TapNote/HoldNote mentioned above. \\
+    \tab The design will be primarily influenced by the SOLID principles:
+    \begin{itemize}
+        \item \textbf{Single Responsibility:} classes such as NoteJudge, Score, Combo, Progression, and GameSession will have distinct responsibilities rather than combining unrelated gameplay logic.
+        \item \textbf{Open/Closed:} judgement and scoring behaviour can be extended by addding implementations of NoteJudgement and ScoringPolicy without modifying their clients.
+        \item \textbf{Liskov Substitution:} concrete notes, judgement policies, and game states should be usable wherever their corresponding abstractions are expected.
+        \item \textbf{Interface Segregation:} interfaces such as Clock and SaveStore will expose only the operations needed by their clients.
+        \item \textbf{Dependency Inversion:} GameSession and other domain classes will depend on abstractions such as Clock, SaveStore, NoteJudgement, and ScoringPolicy rather than concrete implementations.
+    \end{itemize} 
+    \tab The state pattern is the strongest current pattern design candidate because the game session has a clearly defined lifecycle with guarded transitions.
+    Abstract factory and factory method address separate object-creation problems: constructing compatible gameplay policies and constructing different note types.
+    These choices will be revisited during Deliverable 2 as the implementation and class responsibilities become clearer.
 
 
 \section{Milestone Plans \& Risks}
