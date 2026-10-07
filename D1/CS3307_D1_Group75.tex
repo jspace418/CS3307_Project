@@ -376,9 +376,8 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         \item \textbf{Interface Segregation:} interfaces such as Clock and SaveStore will expose only the operations needed by their clients.
         \item \textbf{Dependency Inversion:} GameSession and other domain classes will depend on abstractions such as Clock, SaveStore, NoteJudgement, and ScoringPolicy rather than concrete implementations.
     \end{itemize} 
-    \tab The state pattern is the strongest current pattern design candidate because the game session has a clearly defined lifecycle with guarded transitions.
-    Abstract factory and factory method address separate object-creation problems: constructing compatible gameplay policies and constructing different note types.
-    These choices will be revisited during Deliverable 2 as the implementation and class responsibilities become clearer.
+    \tab The state pattern is currently the strongest pattern design candidate because the game session has a clearly defined lifecycle with guarded transitions.
+    This choice will be revisited during Deliverable 2 as the implementation and class responsibilities become clearer.
 
 
 \section{Milestone Plans \& Risks}
@@ -419,9 +418,151 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
     Possible mitigation is to prioritizing rubric requirements over features. Optional features such as FR9 will be dropped first if needed, followed by
     non-essential gameplay polish.
 
-
-
 \section{Design Depth Profile}
+    \begin{table}[H]
+        \centering
+        \small
+        \begin{tabular}{@{}lll@{}}
+        \toprule
+        DP & Requirement & System Design \\
+        \midrule
 
+        DP1 &
+        Domain model&
+        \textbf{Song/Chart} module: \texttt{Song}, \texttt{Chart},
+        \texttt{Note}, \texttt{TapNote}, and \texttt{HoldNote}. \\ & &
+        \textbf{Gameplay} module: \texttt{GameSession},
+        \texttt{PlayerInput}, \texttt{NoteJudge}, \texttt{Score}, \\ & &
+        \texttt{Combo}, and the game-state classes. \\ & &
+        \textbf{Progression} module: \texttt{Profile},
+        \texttt{SongResult}, and \texttt{Progression}.\\
+
+        \addlinespace
+
+        DP2 &
+        Variation Points &
+        \texttt{NoteJudgement}, implemented by \texttt{NormalJudgement} \\ & &
+        \texttt{ScoringPolicy}, implemented by \texttt{Scoring} \\ & &
+        \texttt{GameState}, implemented by different states. \\
+
+        \addlinespace
+
+        DP3 &
+        Life Cycle &
+        \texttt{GameSession} has four states: \textbf{Preparing},
+        \textbf{Playing}, \textbf{Paused}, \\ & & and \textbf{Finished}. \\ & & 
+        Operations such as \texttt{start()}, \texttt{pause()},
+        \texttt{resume()}, and \texttt{finish()} are \\ & & delegated to the
+        current state. Invalid transitions are rejected and \\ & & leave the
+        session unchanged. \\
+
+
+    \bottomrule
+        \end{tabular}
+    \end{table}
+
+\pagebreak
+    \begin{table}[H]
+        \centering
+        \small
+        \begin{tabular}{@{}lll@{}}
+        \toprule
+        DP & Requirement & System Design \\
+        \midrule
+        
+        DP4 &
+        Business Rules &
+        Five domain rules:
+        (1) a note can only be judged once; (2) timing \\ & & difference
+        determines the judgement according to the active \\ & & 
+        \texttt{NoteJudgement} policy; (3) a successful note increases
+        combo while \\ & & a \texttt{Miss} resets the current combo; (4) a
+        \texttt{HoldNote} is successful only \\ & &when its required hold
+        duration is satisfied; and (5) locked songs or \\ & & difficulties
+        cannot be selected for gameplay. \\
+
+        \addlinespace
+
+        DP5 &
+        Collaboration &
+        \textbf{UC1} uses \texttt{GameSession},
+        \texttt{Chart}, \texttt{Note}, \texttt{NoteJudge},
+        \texttt{NoteJudgement}, \\ & & \texttt{ScoringPolicy}, \texttt{Score},
+        and \texttt{Combo}. \\ & & \textbf{UC2} uses
+        \texttt{GameSession}, \texttt{Chart}, \texttt{Score},
+        \texttt{Combo}, \texttt{SongResult}, \texttt{Profile}, \\ & & and
+        \texttt{Progression}. \\ & & \textbf{UC3} uses
+        \texttt{SaveStore}, \texttt{Profile}, and \texttt{Progression}\\
+
+        \addlinespace
+
+        DP6 &
+        Reactive Behaviour &
+        Gameplay performance changes will be exposed through a
+        notification \\ & & mechanism. When values such as \texttt{Score} or
+        \texttt{Combo} change, interested \\ & & presentation components can be
+        notified without the domain classes\\ & &  depending directly on Qt
+        widgets. \\
+
+        \addlinespace
+
+        DP7 &
+        External Boundaries &
+        \texttt{SaveStore} provides the persistence boundary, with
+        \texttt{JsonSaveStore} \\ & & as the real implementation and a mock
+        implementation for testing. \\ & & \texttt{Clock} provides the timing
+        boundary, with \texttt{SystemClock} as the \\ & & real implementation
+        and \texttt{MockClock} for deterministic tests. \\ & & These
+        dependencies are injected through their abstractions. \\
+
+        \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \begin{table}[H]
+        \centering
+        \small
+        \begin{tabular}{@{}lll@{}}
+        \toprule
+        DP & Requirement & System Design \\
+        \midrule
+        DP8 &
+        Persistence &
+        \texttt{Profile} persists the player's results, unlocked songs, \\ & &
+        unlocked difficulties, and player information through
+        \texttt{SaveStore}. \\ & & JSON representation and file-version details
+        are hidden \\ & &inside \texttt{JsonSaveStore}. Missing, corrupt, or
+        incompatible save data is \\ & &detected and handled without
+        destroying valid in-memory state. \\
+
+        \addlinespace
+
+        DP9 &
+        Failure Scenarios &
+        \textbf{Invalid player input}: reject the input and
+        preserve the current state. \\ & & \textbf{Illegal lifecycle
+        transition}: reject the operation and preserve \\ & &the current
+        state. \\ & &\textbf{Corrupt or missing save}: report the
+        problem and use a valid \\ & &default profile without crashing.
+        \\ & &\textbf{Invalid chart}: reject the chart and prevent the
+        session from starting. \\ & & \textbf{Locked content
+        selected}: reject the selection and keep the player\\ & & on the
+        selection screen. \\
+
+        \addlinespace
+
+        DP10 &
+        UI &
+        The Qt interface will provide at least three views:\\ & &
+        \textbf{Song Selection}, \textbf{Gameplay}, and
+        \textbf{Results}. \\ & &Song Selection handles song, difficulty, and
+        mode choices.\\ & & Gameplay displays notes and performance; and
+        Results displays score, \\ & &accuracy, combo, and progression.\\ & &
+        UI classes communicate with the core through controllers or
+        interfaces \\ & &and contain no gameplay logic. \\
+
+        \bottomrule
+        \end{tabular}
+    \end{table}
 
 \end{document}
