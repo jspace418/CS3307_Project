@@ -117,8 +117,6 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
             interact with the application's underlying data files.
 
 
-\pagebreak
-
 
 \section{Use Case Model}
         \subsection{Use Cases}
@@ -564,5 +562,20 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         \bottomrule
         \end{tabular}
     \end{table}
+
+    \begin{figure}[H]
+        \includegraphics[width=0.65\textwidth]{StateDiagram.png}
+        \centering
+        \caption{State Diagram}
+    \end{figure}
+    \tab Now, the important lifecycle invariant is that a session cannot return to Preparing or Playing after reaching Finished.
+    And gameplay can't be paused or resumed unless the current state permits that operation. 
+    The concrete state classes enforce these transition rules rather than relying on the Qt interface to do so. \\
+    \tab R1-R6 will be met by implementing the system using C++ with Qt, and CMake configuration, using 2+ creational patterns and 1 structural pattern 
+    with documented design justifications, 
+    applying object-oriented approaches, SOLID principles, and low coupling, 
+    keeping domain logic in \texttt{core/} and Qt portion in \texttt{ui/}, 
+    validating inputs, rejecting invalid operations,
+    and providing GoogleTest for at least 3 boundaries.
 
 \end{document}
