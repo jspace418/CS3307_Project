@@ -3,6 +3,7 @@
 \usepackage{amsfonts, amsthm, amsmath, amssymb}
 
 \usepackage{booktabs}
+\renewcommand{\arraystretch}{1.3}
 
 \usepackage{float}
 
@@ -381,6 +382,43 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
 
 
 \section{Milestone Plans \& Risks}
+    \tab D2 will provide about half of the final system, with priority given to establishing the complete core architecture and a working gameplay loop.
+    The remaining features will then build on this foundation rather than requiring major architectural changes late in the project.
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{@{}lll@{}}
+            \toprule
+            Requirements & D2 Target & Planned implementation \\ 
+            \midrule
+            FR1  & Yes     & Song selection screen with available songs \\
+            FR2  & Yes     & Difficulty selection for selected song \\
+            FR3  & Partial & Chart loading logic and draw notes on screen \\
+            FR4  & Partial & NoteJudge timing window \\
+            FR5  & Yes     & TapNote and HoldNote implementation \\
+            FR6  & Partial & Score and combo calculation \\
+            FR7  & Partial & Core GameState lifecycle, \\
+                 &         & and UI integration for main transitions \\
+            FR8  & Partial & SaveStore abstraction, JsonSaveStore logic, and \\ 
+                 &         & basic profile/result persistence \\
+            FR9  & No      & Optional feature deferred until all FR is complete \\
+            FR10 & No      & Planned for D3 \\
+            FR11 & Partial & Persistence error detection and failure behaviour \\
+            \bottomrule
+        \end{tabular}
+        \caption{Milestone Planning Table}
+    \end{table}
+    \tab The first risk is that gameplay architecture getting too complex. 
+    This could potentially require major modification to notes, scoring, judgement, or game states and make D2/D3 implementation difficult to maintain.
+    Possible mitigation is to implement a small end-to-end gameplay slice early. Keep GameSession as a coordinator and separate judgement, scoring, notes, state management, andn persistence
+    behind focused classes and iterfaces. \\
+    \tab The second risk is that timing and input handling being difficult to implement reliably.
+    In rhythim games, timing is the key. And inaccurate timing could make the core system mechanic unreliable and difficult to test.
+    Possible mitigation is to separate timing behind the Clock interface and represent input using PlayerInput class. By creating second Clock interface, we can use that to create deterministic tests for timing windows
+    and note judgements rather than relying on real-time gameplay during testing. \\
+    \tab The last risk is required features and teseting taking longer than expected. Some requirements taking longer to implement could consume time to the point where it puts D3 deadlines at risk.
+    Possible mitigation is to prioritizing rubric requirements over features. Optional features such as FR9 will be dropped first if needed, followed by
+    non-essential gameplay polish.
+
 
 
 \section{Design Depth Profile}
