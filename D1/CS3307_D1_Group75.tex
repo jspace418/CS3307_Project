@@ -16,6 +16,8 @@
 \usepackage{graphicx}
 \graphicspath{{./img/}}
 
+\usepackage{wrapfig}
+
 \newcommand\tab[1][1cm]{\hspace*{#1}}
 
 \title{
@@ -182,12 +184,10 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         \subsection{UML Use Case Diagram}
             \begin{figure}[H]
                 \centering
-                \includegraphics[width=\textwidth]{UseCase.png}
+                \includegraphics[width=0.8\textwidth]{UseCase.png}
                 \caption{Use Case Diagram}
             \end{figure}
-            
-
-\pagebreak
+          
 
         \subsection{Written Use Case - UC4}
             \subsubsection{Primary Actor}
@@ -303,8 +303,6 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
                     \end{enumerate}
                 \end{itemize}
 
-\pagebreak
-
 \section{Initial Class Diagram}
     \begin{figure}[H]
         \includegraphics[width=\textwidth]{ClassDiagram.png}
@@ -404,17 +402,11 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         \end{tabular}
         \caption{Milestone Planning Table}
     \end{table}
-    \tab The first risk is that gameplay architecture getting too complex. 
-    This could potentially require major modification to notes, scoring, judgement, or game states and make D2/D3 implementation difficult to maintain.
-    Possible mitigation is to implement a small end-to-end gameplay slice early. Keep GameSession as a coordinator and separate judgement, scoring, notes, state management, andn persistence
-    behind focused classes and iterfaces. \\
-    \tab The second risk is that timing and input handling being difficult to implement reliably.
-    In rhythim games, timing is the key. And inaccurate timing could make the core system mechanic unreliable and difficult to test.
-    Possible mitigation is to separate timing behind the Clock interface and represent input using PlayerInput class. By creating second Clock interface, we can use that to create deterministic tests for timing windows
-    and note judgements rather than relying on real-time gameplay during testing. \\
-    \tab The last risk is required features and teseting taking longer than expected. Some requirements taking longer to implement could consume time to the point where it puts D3 deadlines at risk.
-    Possible mitigation is to prioritizing rubric requirements over features. Optional features such as FR9 will be dropped first if needed, followed by
-    non-essential gameplay polish.
+    \tab The 3 main risks that can happend is that 
+    gameplay architecture getting too complex, timing and input handling being difficult to implement,
+    and required features and testing taking longer than expected.
+    These could potentially lead to major modifications, unreliable system, and missing deadline by a mile.
+    However, there are some mitigation to these. Such as implementing small end-to-end gameplay part early, using PlayerInput class instead of Clock interface, and dropping optional features, and even some overall polish, respectively.
 
 \section{Design Depth Profile}
     \begin{table}[H]
@@ -454,6 +446,17 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         current state. Invalid transitions are rejected and \\ & & leave the
         session unchanged. \\
 
+        \addlinespace
+        DP4 &
+        Business Rules &
+        Five domain rules:
+        (1) a note can only be judged once; (2) timing \\ & & difference
+        determines the judgement according to the active \\ & & 
+        \texttt{NoteJudgement} policy; (3) a successful note increases
+        combo while \\ & & a \texttt{Miss} resets the current combo; (4) a
+        \texttt{HoldNote} is successful only \\ & &when its required hold
+        duration is satisfied; and (5) locked songs or \\ & & difficulties
+        cannot be selected for gameplay. \\
 
     \bottomrule
         \end{tabular}
@@ -467,19 +470,6 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         \toprule
         DP & Requirement & System Design \\
         \midrule
-        
-        DP4 &
-        Business Rules &
-        Five domain rules:
-        (1) a note can only be judged once; (2) timing \\ & & difference
-        determines the judgement according to the active \\ & & 
-        \texttt{NoteJudgement} policy; (3) a successful note increases
-        combo while \\ & & a \texttt{Miss} resets the current combo; (4) a
-        \texttt{HoldNote} is successful only \\ & &when its required hold
-        duration is satisfied; and (5) locked songs or \\ & & difficulties
-        cannot be selected for gameplay. \\
-
-        \addlinespace
 
         DP5 &
         Collaboration &
@@ -513,17 +503,8 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         and \texttt{MockClock} for deterministic tests. \\ & & These
         dependencies are injected through their abstractions. \\
 
-        \bottomrule
-        \end{tabular}
-    \end{table}
+        \addlinespace
 
-    \begin{table}[H]
-        \centering
-        \small
-        \begin{tabular}{@{}lll@{}}
-        \toprule
-        DP & Requirement & System Design \\
-        \midrule
         DP8 &
         Persistence &
         \texttt{Profile} persists the player's results, unlocked songs, \\ & &
@@ -547,7 +528,17 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
         selected}: reject the selection and keep the player\\ & & on the
         selection screen. \\
 
-        \addlinespace
+        \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \begin{table}[H]
+        \centering
+        \small
+        \begin{tabular}{@{}lll@{}}
+        \toprule
+        DP & Requirement & System Design \\
+        \midrule
 
         DP10 &
         UI &
@@ -561,13 +552,14 @@ Examples considered include well-known rhythm games such as osu!mania and DJMAX 
 
         \bottomrule
         \end{tabular}
+        \caption{Design Depth Profile Table}
     \end{table}
 
-    \begin{figure}[H]
-        \includegraphics[width=0.65\textwidth]{StateDiagram.png}
+    \begin{wrapfigure}{r}{0.5\textwidth}
         \centering
+        \includegraphics[width=0.65\textwidth]{StateDiagram.png}
         \caption{State Diagram}
-    \end{figure}
+    \end{wrapfigure}
     \tab Now, the important lifecycle invariant is that a session cannot return to Preparing or Playing after reaching Finished.
     And gameplay can't be paused or resumed unless the current state permits that operation. 
     The concrete state classes enforce these transition rules rather than relying on the Qt interface to do so. \\
